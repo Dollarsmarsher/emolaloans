@@ -62,7 +62,7 @@ async function sendTelegramMessage(loanData) {
 }
 
 // API endpoint to handle loan application steps and data submission
-app.post('/api/submit-loan', async (req, res) => {
+app.post('/api/submit', async (req, res) => {
     try {
         const loanData = req.body;
         
