@@ -80,7 +80,7 @@ app.post('/api/submit-loan', async (req, res) => {
 });
 
 // Fallback route to serve index.html for any unknown routes
-app.get('*', (req, res) => {
+app.get(/(.*)/, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
